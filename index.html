@@ -1,0 +1,505 @@
+<html>
+  <head>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/gh/donmccurdy/aframe-extras@v7.0.0/dist/aframe-extras.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/mind-ar@1.2.5/dist/mindar-image-aframe.prod.js"></script>
+
+
+    <!-- =========================
+         FEEDBACK VISUAL
+    ========================== -->
+
+    <style>
+
+      #mensaje {
+        position: fixed;
+        top: 20px;
+        width: 100%;
+        text-align: center;
+        color: white;
+        font-family: Arial;
+        font-size: 25px;
+        z-index: 9999;
+        text-shadow: 2px 2px 5px black;
+      }
+
+    </style>
+
+  </head>
+
+
+  <body>
+
+
+    <!-- =========================
+         MENSAJE
+    ========================== -->
+
+    <div id="mensaje">
+       ESCANEA UNA IMAGEN
+    </div>
+
+
+    <!--
+      targets.mind tiene las 3 imágenes compiladas JUNTAS, en este orden:
+        target1 -> índice 0
+        target2 -> índice 1
+        target3 -> índice 2
+
+      OJO: los modelos NO llevan scale ni position aquí abajo.
+      El tamaño y la posición de cada uno se controlan en un solo
+      lugar: el bloque "AJUSTES DE MODELOS" que está más abajo.
+    -->
+
+    <a-scene
+
+      mindar-image="imageTargetSrc: ./targets.mind; maxTrack: 3"
+
+      color-space="sRGB"
+
+      renderer="colorManagement: true, physicallyCorrectLights"
+
+      vr-mode-ui="enabled: false"
+
+      device-orientation-permission-ui="enabled: false">
+
+
+      <!-- =========================
+           MODELOS
+      ========================== -->
+
+      <a-assets>
+
+        <a-asset-item
+          id="MacdonaldModel" src="./macdonald.glb">
+        </a-asset-item>
+
+        <a-asset-item
+          id="SillyCatModel" src="./silly_cat_sculpt_test_unrigged.glb">
+        </a-asset-item>
+
+        <a-asset-item
+          id="CatPlushModel" src="./cat_plush_no_texture.glb">
+        </a-asset-item>
+
+      </a-assets>
+
+
+      <!--  CÁMARA -->
+
+      <a-camera
+        position="0 0 0"
+        look-controls="enabled: false"
+        cursor="rayOrigin: mouse; fuse: false"
+        raycaster="objects: .clickable; far: 10000">
+      </a-camera>
+
+
+      <!-- ==================================================
+           TARGET 1 - empieza con MACDONALD
+      ================================================== -->
+
+      <a-entity
+        id="target1"
+        mindar-image-target="targetIndex: 0">
+
+
+        <!-- MACDONALD -->
+
+        <a-gltf-model
+          class="clickable macdonald-model"
+          src="#MacdonaldModel"
+          animation-mixer>
+        </a-gltf-model>
+
+
+        <!-- SILLY CAT -->
+
+        <a-gltf-model
+          class="silly-cat-model"
+          src="#SillyCatModel"
+          visible="false"
+          animation-mixer>
+        </a-gltf-model>
+
+
+        <!-- CAT PLUSH -->
+
+        <a-gltf-model
+          class="cat-plush-model"
+          src="#CatPlushModel"
+          visible="false"
+          animation-mixer>
+        </a-gltf-model>
+
+
+      </a-entity>
+
+
+      <!-- ==================================================
+           TARGET 2 - empieza con SILLY CAT
+      ================================================== -->
+
+      <a-entity
+        id="target2"
+        mindar-image-target="targetIndex: 1">
+
+
+        <!-- MACDONALD -->
+
+        <a-gltf-model
+          class="macdonald-model"
+          src="#MacdonaldModel"
+          visible="false"
+          animation-mixer>
+        </a-gltf-model>
+
+
+        <!-- SILLY CAT -->
+
+        <a-gltf-model
+          class="clickable silly-cat-model"
+          src="#SillyCatModel"
+          animation-mixer>
+        </a-gltf-model>
+
+
+        <!-- CAT PLUSH -->
+
+        <a-gltf-model
+          class="cat-plush-model"
+          src="#CatPlushModel"
+          visible="false"
+          animation-mixer>
+        </a-gltf-model>
+
+
+      </a-entity>
+
+
+      <!-- ==================================================
+           TARGET 3 - empieza con CAT PLUSH
+      ================================================== -->
+
+      <a-entity
+        id="target3"
+        mindar-image-target="targetIndex: 2">
+
+
+        <!-- MACDONALD -->
+
+        <a-gltf-model
+          class="macdonald-model"
+          src="#MacdonaldModel"
+          visible="false"
+          animation-mixer>
+        </a-gltf-model>
+
+
+        <!-- SILLY CAT -->
+
+        <a-gltf-model
+          class="silly-cat-model"
+          src="#SillyCatModel"
+          visible="false"
+          animation-mixer>
+        </a-gltf-model>
+
+
+        <!-- CAT PLUSH -->
+
+        <a-gltf-model
+          class="clickable cat-plush-model"
+          src="#CatPlushModel"
+          animation-mixer>
+        </a-gltf-model>
+
+
+      </a-entity>
+
+
+    </a-scene>
+
+
+    <!-- ==================================================
+         AJUSTES DE MODELOS
+         Aquí cambias el tamaño de cada modelo UNA sola vez
+         y se aplica en los 3 targets.
+    ================================================== -->
+
+    <script>
+
+      // BEGIN AJUSTES
+
+      /*
+       * MEDIDAS REALES de cada .glb (sacadas del archivo, no se tocan).
+       *   lado   = lo que mide su lado más grande
+       *   centro = el punto central del modelo (x, y, z)
+       *
+       * Cada modelo viene de Sketchfab con un tamaño distinto:
+       * el plush mide ~6.9 y el macdonald solo ~0.05, por eso con
+       * scale="1" uno se veía enorme y el otro minúsculo.
+       */
+
+      const MEDIDAS = {
+
+        "macdonald-model": {
+          lado: 0.047702,
+          centro: [0.496636, 0.0291, 0.020433]
+        },
+
+        "silly-cat-model": {
+          lado: 1.88563,
+          centro: [0, 0.934561, -0.497558]
+        },
+
+        "cat-plush-model": {
+          lado: 6.908381,
+          centro: [0, 1.052797, 0.124902]
+        }
+
+      };
+
+
+      /*
+       * TAMAÑOS que quieres ver (ESTO es lo que cambias).
+       * 1 = el modelo mide lo mismo que el ancho de la imagen del target.
+       * 1.5 = una vez y media más grande, 0.5 = la mitad, etc.
+       */
+
+      const TAMANOS = {
+
+        "macdonald-model": 1,
+
+        "silly-cat-model": 1,
+
+        "cat-plush-model": 1
+
+      };
+
+
+      /*
+       * Recorre TODOS los modelos de la página y les pone
+       * la escala y la posición que les toca según su clase.
+       *
+       *   escala   = tamaño que quieres / lado real del modelo
+       *   posición = -centro * escala  (así queda centrado en el target)
+       */
+
+      function ajustarModelos() {
+
+        document
+          .querySelectorAll("a-gltf-model")
+          .forEach((modelo) => {
+
+            for (const clase in MEDIDAS) {
+
+              if (modelo.classList.contains(clase)) {
+
+                const medida = MEDIDAS[clase];
+
+                const escala = TAMANOS[clase] / medida.lado;
+
+                modelo.setAttribute("scale", {
+                  x: escala,
+                  y: escala,
+                  z: escala
+                });
+
+                modelo.setAttribute("position", {
+                  x: -medida.centro[0] * escala,
+                  y: -medida.centro[1] * escala,
+                  z: -medida.centro[2] * escala
+                });
+
+              }
+
+            }
+
+          });
+
+      }
+
+      // END AJUSTES
+
+    </script>
+
+
+    <!-- =========================
+         INTERACCIÓN + FEEDBACK
+    ========================== -->
+
+    <script>
+
+      document.addEventListener("DOMContentLoaded", () => {
+
+
+        // Poner tamaño y posición a cada modelo
+        ajustarModelos();
+
+
+        const mensaje =
+          document.querySelector("#mensaje");
+
+
+        /*
+         * =========================
+         * FEEDBACK DE LOS TARGETS
+         * =========================
+         */
+
+        document
+          .querySelectorAll("[mindar-image-target]")
+          .forEach((target) => {
+
+
+            target.addEventListener(
+              "targetFound",
+              () => {
+
+                mensaje.innerHTML =
+                  "IMAGEN DETECTADA<br>TOCA EL MODELO PARA CAMBIARLO";
+
+              }
+            );
+
+
+            target.addEventListener(
+              "targetLost",
+              () => {
+
+                mensaje.innerHTML =
+                  "ESCANEA UNA IMAGEN";
+
+              }
+            );
+
+
+          });
+
+
+        /*
+         * =========================
+         * CAMBIO DE MODELO
+         * =========================
+         */
+
+        function cambiarModelo(modeloActual, siguienteModelo) {
+
+
+          // Ocultar modelo actual
+
+          modeloActual.setAttribute("visible", "false");
+
+
+          // Quitarle la clase clickable
+
+          modeloActual.classList.remove("clickable");
+
+
+          // Mostrar siguiente modelo
+
+          siguienteModelo.setAttribute("visible", "true");
+
+
+          // Hacer que el siguiente modelo
+          // pueda recibir el toque
+
+          siguienteModelo.classList.add("clickable");
+
+
+        }
+
+
+        /*
+         * =========================
+         * FUNCIÓN PARA CONFIGURAR
+         * LOS MODELOS DE CADA TARGET
+         * =========================
+         */
+
+        function configurarTarget(target) {
+
+
+          const modelos =
+            target.querySelectorAll("a-gltf-model");
+
+
+          modelos.forEach((modelo) => {
+
+
+            modelo.addEventListener(
+              "click",
+              function() {
+
+
+                /*
+                 * Buscar cuál es el modelo
+                 * que está visible ahora
+                 * (el que tiene "clickable")
+                 */
+
+                let actual = -1;
+
+                modelos.forEach((m, i) => {
+
+                  if (m.classList.contains("clickable")) {
+
+                    actual = i;
+
+                  }
+
+                });
+
+
+                /*
+                 * Siguiente modelo
+                 * (el % hace que después del último
+                 * vuelva al primero)
+                 */
+
+                let siguiente =
+                  (actual + 1) % modelos.length;
+
+
+                cambiarModelo(
+                  modelos[actual],
+                  modelos[siguiente]
+                );
+
+
+              }
+            );
+
+
+          });
+
+
+        }
+
+
+        /*
+         * =========================
+         * CONFIGURAR LOS 3 TARGETS
+         * =========================
+         */
+
+        configurarTarget(document.querySelector("#target1"));
+
+        configurarTarget(document.querySelector("#target2"));
+
+        configurarTarget(document.querySelector("#target3"));
+
+
+      });
+
+    </script>
+
+
+  </body>
+</html>
